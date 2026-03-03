@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GymFlow - Workout Tracker</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#ff6b6b">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+        
+        :root {
+            --primary: #ff6b6b;
+            --primary-dark: #ff5252;
+            --accent: #ffd93d;
+            --success: #4caf50;
+            --bg-dark: #0f0f1e;
+            --bg-darker: #1a1a2e;
+            --text-light: #b0b0d0;
+            --text-lighter: #a0a0c0;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: linear-gradient(135deg, var(--bg-dark) 0%, var(--bg-darker) 100%);
+            color: #fff;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        .app-container {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Navigation */
+        .nav-bar {
+            display: flex;
+            gap: 0;
+            border-bottom: 2px solid rgba(255, 107, 107, 0.2);
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            padding: 0;
+            position: relative;
+            z-index: 50;
+        }
+
+        .nav-item {
+            flex: 1;
+            padding: 12px 20px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-lighter);
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+            position: relative;
+        }
+
+        .nav-item:hover {
+            color: #fff;
+            background: rgba(255, 107, 107, 0.05);
+        }
+
+        .nav-item.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        /* Main Content */
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        /* Screens */
+        .screen {
+            display: none;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ===== HOME SCREEN ===== */
+        .home-header {
+            margin-bottom: 30px;
+        }
+
+        .home-title {
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .home-subtitle {
+            color: var(--text-lighter);
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 30px;
+        }
+
+        .action-btn {
+            padding: 16px;
+            background: rgba(255, 107, 107, 0.1);
+            border: 2px solid rgba(255, 107, 107, 0.3);
+            border-radius: 12px;
+            color: var(--primary);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .action-btn:active {
+            background: rgba(255, 107, 107, 0.2);
+            transform: scale(0.95);
+        }
+
+        .action-btn.primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+            grid-column: 1 / -1;
+            padding: 18px;
+            font-size: 14px;
+        }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-lighter);
+            margin-bottom: 12px;
+        }
+
+        .workout-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 107, 107, 0.2);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .workout-card:active {
+            background: rgba(255, 107, 107, 0.08);
+            border-color: rgba(255, 107, 107, 0.4);
+        }
+
+        .workout-info h3 {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .workout-info p {
+            font-size: 12px;
+            color: var(--text-lighter);
+        }
+
+        .workout-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .icon-btn {
+            width: 32px;
+            height: 32px;
+            background: rgba(255, 107, 107, 0.15);
+            border: 1px solid rgba(255, 107, 107, 0.3);
+            border-radius: 6px;
+            color: var(--primary);
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .icon-btn:active {
+            background: rgba(255, 107, 107, 0.3);
+        }
+
+        /* ===== CREATE WORKOUT SCREEN ===== */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-lighter);
+            margin-bottom: 8px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 107, 107, 0.3);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 14px;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(255, 107, 107, 0.05);
+        }
+
+        .superset-input-group {
+            background: rgba(255, 107, 107, 0.05);
+            border: 1px solid rgba(255, 107, 107, 0.2);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .superset-input-group h3 {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .input-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .input-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .superset-list {
+            margin-bottom: 20px;
+        }
+
+        .superset-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+        }
+
+        .btn {
+            padding: 14px 20px;
+            border: none;
+            border-radius: 10px;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            text-align: center;
+            width: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            margin-bottom: 12px;
+        }
+
+        .btn-primary:active {
+            transform: scale(0.95);
+            box-shadow: 0 8px 24px rgba(255, 107, 107, 0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 107, 107, 0.15);
+            color: var(--primary);
+            border: 1px solid rgba(255, 107, 107, 0.3);
+            margin-bottom: 8px;
+        }
+
+        .btn-secondary:active {
+            background: rgba(255, 107, 107, 0.25);
+        }
+
+        .btn-danger {
+            background: rgba(255, 107, 107, 0.2);
+            color: var(--primary);
+            border: 1px solid rgba(255, 107, 107, 0.3);
+            font-size: 12px;
+            padding: 6px 10px;
+            width: auto;
+        }
+
+        /* ===== WORKOUT SESSION SCREEN ===== */
+        .session-main {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .session-display {
+            background: rgba(255, 255, 255, 0.02);
+            border: 2px solid rgba(255, 107, 107, 0.3);
+            border-radius: 16px;
+            padding: 30px 20px;
+            text-align: center;
+            margin-bottom: 20px;
+            flex-shrink: 0;
+        }
+
+        .session-status {
+            display: inline-block;
+            padding: 6px 16px;
+            background: rgba(255, 107, 107, 0.2);
+            border: 1px solid rgba(255, 107, 107, 0.5);
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 16px;
+            color: var(--primary);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .session-exercise {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 107, 107, 0.2);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+
+        .session-exercise-name {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .session-reps {
+            font-size: 28px;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .session-timer {
+            font-size: 64px;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 20px 0;
+            letter-spacing: -2px;
+        }
+
+        .session-timer.rest {
+            color: var(--success);
+        }
+
+        .session-timer-label {
+            font-size: 11px;
+            color: var(--text-lighter);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 16px;
+        }
+
+        .session-controls {
+            display: flex;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        .session-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            font-size: 12px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+        }
+
+        .session-btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            flex: 1.5;
+        }
+
+        .session-btn-primary:active {
+            transform: scale(0.95);
+        }
+
+        .session-btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-light);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .session-progress {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 107, 107, 0.2);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 20px;
+            max-height: 120px;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+
+        .progress-item {
+            padding: 6px 8px;
+            font-size: 11px;
+            color: var(--text-lighter);
+            margin-bottom: 4px;
+        }
+
+        .progress-item.completed {
+            color: var(--success);
+        }
+
+        .progress-item.current {
+            background: rgba(255, 107, 107, 0.15);
+            color: var(--primary);
+            font-weight: 600;
+            border-radius: 4px;
+        }
+
+        /* ===== HISTORY SCREEN ===== */
+        .history-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 107, 107, 0.2);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+
+        .history-date {
+            font-size: 12px;
+            color: var(--text-lighter);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+
+        .history-name {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .history-stats {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+        }
+
+        .history-stat {
+            flex: 1;
+            background: rgba(255, 107, 107, 0.1);
+            padding: 8px;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .history-stat-value {
+            font-weight: 600;
+            color: var(--primary);
+            font-size: 14px;
+        }
+
+        .stats-summary {
+            background: rgba(255, 255, 255, 0.02);
+            border: 2px solid rgba(255, 107, 107, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .stat-item {
+            margin-bottom: 16px;
+        }
+
+        .stat-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-lighter);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-lighter);
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #fff;
+        }
+
+        .empty-text {
+            font-size: 13px;
+            margin-bottom: 20px;
+        }
+
+        /* Sound Toggle */
+        .sound-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all 0.3s ease;
+            z-index: 200;
+        }
+
+        .sound-toggle:active {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Responsive */
+        @media (max-width: 500px) {
+            .quick-actions { grid-template-columns: 1fr; }
+            .session-timer { font-size: 48px; }
+            .home-title { font-size: 26px; }
+        }
+
+        .scrollable {
+            overflow-y: auto;
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="sound-toggle" id="soundToggle">🔊</div>
+
+        <!-- Navigation -->
+        <div class="nav-bar">
+            <div class="nav-item active" onclick="switchScreen('home')">Home</div>
+            <div class="nav-item" onclick="switchScreen('create')">Create</div>
+            <div class="nav-item" onclick="switchScreen('history')">History</div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content scrollable">
+            
+            <!-- HOME SCREEN -->
+            <div id="home" class="screen active">
+                <div class="home-header">
+                    <h1 class="home-title">GymFlow</h1>
+                    <p class="home-subtitle">Superset Pyramid Tracker</p>
+                </div>
+
+                <div class="quick-actions">
+                    <div class="action-btn" onclick="switchScreen('create')">➕ New Workout</div>
+                    <div class="action-btn" onclick="loadRandomWorkout()">⚡ Quick Start</div>
+                    <div class="action-btn primary" onclick="if(savedWorkouts.length > 0) loadWorkout(savedWorkouts[0].id); else alert('No saved workouts')">▶️ Start Latest</div>
+                </div>
+
+                <div class="section-title">Your Workouts</div>
+                <div id="workoutsList"></div>
+            </div>
+
+            <!-- CREATE WORKOUT SCREEN -->
+            <div id="create" class="screen">
+                <h2 style="font-size: 20px; margin-bottom: 20px; color: var(--primary);">Create Workout</h2>
+
+                <div class="form-group">
+                    <label class="form-label">Workout Name</label>
+                    <input type="text" id="workoutNameInput" class="form-input" placeholder="e.g., Push Day Pyramid">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Rest Between Rounds (seconds)</label>
+                    <input type="number" id="restTimeInput" class="form-input" value="45" min="10" max="300">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Add Superset</label>
+                    <div class="superset-input-group">
+                        <h3>Superset Details</h3>
+                        <div class="input-row">
+                            <input type="text" id="ex1NameInput" class="form-input" placeholder="Exercise 1">
+                            <input type="number" id="ex1RepsInput" class="form-input" value="15" min="1" max="100">
+                        </div>
+                        <div class="input-row">
+                            <input type="text" id="ex2NameInput" class="form-input" placeholder="Exercise 2">
+                            <input type="number" id="ex2RepsInput" class="form-input" value="10" min="1" max="100">
+                        </div>
+                        <button class="btn btn-secondary" onclick="addSupersetToForm()">+ Add Superset</button>
+                    </div>
+                </div>
+
+                <div class="superset-list" id="supersetsListForm"></div>
+
+                <button class="btn btn-primary" onclick="saveWorkout()">💾 Save Workout</button>
+                <button class="btn btn-secondary" onclick="switchScreen('home')">Cancel</button>
+            </div>
+
+            <!-- HISTORY SCREEN -->
+            <div id="history" class="screen">
+                <h2 style="font-size: 20px; margin-bottom: 20px; color: var(--primary);">Progress History</h2>
+
+                <div class="stats-summary" id="statsSummary">
+                    <div class="stat-item">
+                        <div class="stat-value" id="totalWorkouts">0</div>
+                        <div class="stat-label">Total Workouts</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="totalTime">0</div>
+                        <div class="stat-label">Total Time (min)</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="thisWeek">0</div>
+                        <div class="stat-label">This Week</div>
+                    </div>
+                </div>
+
+                <div class="section-title">Recent Sessions</div>
+                <div id="historyList"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Workout Session Modal (Full Screen) -->
+    <div id="sessionModal" class="screen" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, var(--bg-dark) 0%, var(--bg-darker) 100%); display: flex; flex-direction: column; z-index: 1000; padding: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 id="sessionWorkoutName" style="font-size: 18px; color: var(--primary);">Workout</h2>
+            <button class="icon-btn" onclick="exitSession()" style="width: 40px; height: 40px;">✕</button>
+        </div>
+
+        <div class="session-display">
+            <div class="session-status" id="sessionStatus">Exercise</div>
+
+            <div style="margin-bottom: 20px;">
+                <div class="session-exercise">
+                    <div class="session-exercise-name" id="sessionEx1Name">Exercise 1</div>
+                    <div class="session-reps" id="sessionEx1Reps">15</div>
+                </div>
+                <div style="text-align: center; color: var(--text-lighter); margin: 8px 0; font-weight: 600;">+</div>
+                <div class="session-exercise">
+                    <div class="session-exercise-name" id="sessionEx2Name">Exercise 2</div>
+                    <div class="session-reps" id="sessionEx2Reps">10</div>
+                </div>
+            </div>
+
+            <div class="session-timer" id="sessionTimer">00:00</div>
+            <div class="session-timer-label" id="sessionTimerLabel">Ready</div>
+            <div style="font-size: 12px; color: var(--text-lighter);" id="sessionRound">Round 1</div>
+        </div>
+
+        <div class="session-progress" id="sessionProgressContainer"></div>
+
+        <div class="session-controls">
+            <button class="session-btn session-btn-primary" id="sessionControlBtn" onclick="toggleSessionTimer()">START REST</button>
+            <button class="session-btn session-btn-secondary" onclick="skipSessionRound()">SKIP</button>
+        </div>
+    </div>
+
+    <script>
+        // ===== STATE MANAGEMENT =====
+        let savedWorkouts = [];
+        let workoutHistory = [];
+        let currentSession = null;
+        let soundEnabled = true;
+
+        // Load from localStorage
+        function loadFromStorage() {
+            const stored = localStorage.getItem('gymflowData');
+            if (stored) {
+                const data = JSON.parse(stored);
+                savedWorkouts = data.workouts || [];
+                workoutHistory = data.history || [];
+            }
+        }
+
+        // Save to localStorage
+        function saveToStorage() {
+            localStorage.setItem('gymflowData', JSON.stringify({ workouts: savedWorkouts, history: workoutHistory }));
+        }
+
+        // ===== UI UTILITIES =====
+        function switchScreen(screen) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screen).classList.add('active');
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            if (screen === 'history') updateHistory();
+            if (screen === 'home') renderWorkoutsList();
+        }
+
+        function playBeep() {
+            if (!soundEnabled) return;
+            try {
+                const context = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = context.createOscillator();
+                const gain = context.createGain();
+                osc.connect(gain);
+                gain.connect(context.destination);
+                osc.frequency.value = 800;
+                gain.gain.setValueAtTime(0.3, context.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, context.currentTime + 0.1);
+                osc.start(context.currentTime);
+                osc.stop(context.currentTime + 0.1);
+            } catch (e) {}
+        }
+
+        document.getElementById('soundToggle').addEventListener('click', function() {
+            soundEnabled = !soundEnabled;
+            this.textContent = soundEnabled ? '🔊' : '🔇';
+        });
+
+        // ===== WORKOUT CREATION =====
+        let formSupersets = [];
+
+        function addSupersetToForm() {
+            const ex1 = document.getElementById('ex1NameInput').value.trim();
+            const ex2 = document.getElementById('ex2NameInput').value.trim();
+            const reps1 = parseInt(document.getElementById('ex1RepsInput').value) || 15;
+            const reps2 = parseInt(document.getElementById('ex2RepsInput').value) || 10;
+
+            if (!ex1 || !ex2) {
+                alert('Enter both exercise names');
+                return;
+            }
+
+            formSupersets.push({ exercise1: ex1, reps1, exercise2: ex2, reps2 });
+            document.getElementById('ex1NameInput').value = '';
+            document.getElementById('ex1RepsInput').value = '15';
+            document.getElementById('ex2NameInput').value = '';
+            document.getElementById('ex2RepsInput').value = '10';
+
+            renderFormSupersets();
+        }
+
+        function renderFormSupersets() {
+            const container = document.getElementById('supersetsListForm');
+            container.innerHTML = formSupersets.map((ss, i) => `
+                <div class="superset-item">
+                    <span>${ss.exercise1}(${ss.reps1}) + ${ss.exercise2}(${ss.reps2})</span>
+                    <button class="btn-danger" onclick="formSupersets.splice(${i}, 1); renderFormSupersets();">Remove</button>
+                </div>
+            `).join('');
+        }
+
+        function saveWorkout() {
+            const name = document.getElementById('workoutNameInput').value.trim();
+            const rest = parseInt(document.getElementById('restTimeInput').value) || 45;
+
+            if (!name || formSupersets.length === 0) {
+                alert('Enter workout name and at least one superset');
+                return;
+            }
+
+            const workout = {
+                id: Date.now(),
+                name,
+                rest,
+                supersets: [...formSupersets],
+                created: new Date().toISOString()
+            };
+
+            savedWorkouts.push(workout);
+            saveToStorage();
+
+            // Reset form
+            document.getElementById('workoutNameInput').value = '';
+            document.getElementById('restTimeInput').value = '45';
+            formSupersets = [];
+            renderFormSupersets();
+
+            alert('✓ Workout saved!');
+            switchScreen('home');
+        }
+
+        // ===== WORKOUTS LIST =====
+        function renderWorkoutsList() {
+            const container = document.getElementById('workoutsList');
+            
+            if (savedWorkouts.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📋</div>
+                        <div class="empty-title">No Workouts Yet</div>
+                        <div class="empty-text">Create your first superset pyramid workout</div>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = savedWorkouts.map(w => `
+                <div class="workout-card" onclick="loadWorkout(${w.id})">
+                    <div class="workout-info">
+                        <h3>${w.name}</h3>
+                        <p>${w.supersets.length} superset${w.supersets.length > 1 ? 's' : ''} • ${w.rest}s rest</p>
+                    </div>
+                    <div class="workout-actions">
+                        <div class="icon-btn" onclick="event.stopPropagation(); deleteWorkout(${w.id})">🗑️</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function deleteWorkout(id) {
+            if (confirm('Delete this workout?')) {
+                savedWorkouts = savedWorkouts.filter(w => w.id !== id);
+                saveToStorage();
+                renderWorkoutsList();
+            }
+        }
+
+        // ===== SESSION MANAGEMENT =====
+        let sessionState = {
+            supersetIndex: 0,
+            round: 1,
+            isResting: false,
+            timerRunning: false,
+            timeRemaining: 0,
+            timerInterval: null,
+            completed: false,
+            startTime: null,
+            sessionHistory: []
+        };
+
+        function loadWorkout(id) {
+            const workout = savedWorkouts.find(w => w.id === id);
+            if (!workout) return;
+
+            currentSession = { ...workout };
+            sessionState = {
+                supersetIndex: 0,
+                round: 1,
+                isResting: false,
+                timerRunning: false,
+                timeRemaining: 0,
+                timerInterval: null,
+                completed: false,
+                startTime: Date.now(),
+                sessionHistory: []
+            };
+
+            document.getElementById('sessionWorkoutName').textContent = workout.name;
+            document.getElementById('sessionModal').style.display = 'flex';
+            loadSessionRound();
+            updateSessionProgress();
+        }
+
+        function loadSessionRound() {
+            if (sessionState.supersetIndex >= currentSession.supersets.length) {
+                finishSession();
+                return;
+            }
+
+            const ss = currentSession.supersets[sessionState.supersetIndex];
+            const reps1 = Math.max(1, ss.reps1 - sessionState.round + 1);
+            const reps2 = Math.max(1, ss.reps2 - sessionState.round + 1);
+
+            document.getElementById('sessionEx1Name').textContent = ss.exercise1;
+            document.getElementById('sessionEx2Name').textContent = ss.exercise2;
+            document.getElementById('sessionEx1Reps').textContent = reps1;
+            document.getElementById('sessionEx2Reps').textContent = reps2;
+            document.getElementById('sessionRound').textContent = `Round ${sessionState.round}`;
+            document.getElementById('sessionStatus').textContent = 'Exercise';
+            document.getElementById('sessionTimerLabel').textContent = 'Ready';
+            document.getElementById('sessionControlBtn').textContent = 'START REST';
+            document.getElementById('sessionStatus').style.color = 'var(--primary)';
+            document.getElementById('sessionTimer').classList.remove('rest');
+
+            sessionState.isResting = false;
+            sessionState.timerRunning = false;
+            sessionState.timeRemaining = 0;
+            updateSessionTimer();
+        }
+
+        function toggleSessionTimer() {
+            if (sessionState.isResting) {
+                sessionState.timerRunning = !sessionState.timerRunning;
+                document.getElementById('sessionControlBtn').textContent = sessionState.timerRunning ? 'PAUSE' : 'RESUME';
+                if (sessionState.timerRunning) runSessionTimer();
+            } else {
+                startSessionRest();
+            }
+        }
+
+        function startSessionRest() {
+            sessionState.isResting = true;
+            sessionState.timerRunning = true;
+            sessionState.timeRemaining = currentSession.rest;
+
+            document.getElementById('sessionStatus').textContent = 'Rest';
+            document.getElementById('sessionStatus').style.color = 'var(--success)';
+            document.getElementById('sessionTimer').classList.add('rest');
+            document.getElementById('sessionTimerLabel').textContent = 'Rest Time';
+            document.getElementById('sessionControlBtn').textContent = 'PAUSE';
+
+            playBeep();
+            updateSessionTimer();
+            runSessionTimer();
+        }
+
+        function runSessionTimer() {
+            if (sessionState.timerInterval) clearInterval(sessionState.timerInterval);
+
+            sessionState.timerInterval = setInterval(() => {
+                if (!sessionState.timerRunning) return;
+
+                sessionState.timeRemaining--;
+                updateSessionTimer();
+
+                if (sessionState.timeRemaining <= 0) {
+                    clearInterval(sessionState.timerInterval);
+                    playBeep();
+
+                    const ss = currentSession.supersets[sessionState.supersetIndex];
+                    const maxRound = Math.max(ss.reps1, ss.reps2);
+
+                    if (sessionState.round < maxRound) {
+                        sessionState.round++;
+                    } else {
+                        sessionState.supersetIndex++;
+                        sessionState.round = 1;
+                    }
+
+                    loadSessionRound();
+                    updateSessionProgress();
+                }
+            }, 1000);
+        }
+
+        function updateSessionTimer() {
+            const mins = Math.floor(sessionState.timeRemaining / 60);
+            const secs = sessionState.timeRemaining % 60;
+            document.getElementById('sessionTimer').textContent = 
+                `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        }
+
+        function skipSessionRound() {
+            if (sessionState.isResting) {
+                const ss = currentSession.supersets[sessionState.supersetIndex];
+                const maxRound = Math.max(ss.reps1, ss.reps2);
+
+                if (sessionState.round < maxRound) {
+                    sessionState.round++;
+                } else {
+                    sessionState.supersetIndex++;
+                    sessionState.round = 1;
+                }
+
+                loadSessionRound();
+                updateSessionProgress();
+            } else {
+                startSessionRest();
+            }
+        }
+
+        function updateSessionProgress() {
+            const container = document.getElementById('sessionProgressContainer');
+            let html = '';
+
+            currentSession.supersets.forEach((ss, ssIndex) => {
+                const maxRound = Math.max(ss.reps1, ss.reps2);
+                for (let r = 1; r <= maxRound; r++) {
+                    let className = 'progress-item';
+                    if (ssIndex === sessionState.supersetIndex && r === sessionState.round && !sessionState.completed) {
+                        className += ' current';
+                    } else if (ssIndex < sessionState.supersetIndex || (ssIndex === sessionState.supersetIndex && r < sessionState.round)) {
+                        className += ' completed';
+                    }
+
+                    const reps1 = Math.max(1, ss.reps1 - r + 1);
+                    const reps2 = Math.max(1, ss.reps2 - r + 1);
+                    const label = currentSession.supersets.length === 1 ? `R${r}` : `S${ssIndex + 1}R${r}`;
+                    html += `<div class="${className}">${label}: ${reps1}+${reps2}</div>`;
+                }
+            });
+
+            container.innerHTML = html;
+        }
+
+        function finishSession() {
+            sessionState.completed = true;
+            const duration = Math.round((Date.now() - sessionState.startTime) / 60000);
+
+            document.getElementById('sessionEx1Name').textContent = 'COMPLETE!';
+            document.getElementById('sessionEx2Name').textContent = '🎉';
+            document.getElementById('sessionRound').textContent = `${duration} minutes`;
+            document.getElementById('sessionStatus').textContent = 'Finished';
+            document.getElementById('sessionTimer').textContent = '✓';
+            document.getElementById('sessionControlBtn').style.display = 'none';
+
+            // Save to history
+            workoutHistory.push({
+                workoutId: currentSession.id,
+                workoutName: currentSession.name,
+                date: new Date().toISOString(),
+                duration,
+                supersets: currentSession.supersets
+            });
+            saveToStorage();
+
+            playBeep();
+            playBeep();
+        }
+
+        function exitSession() {
+            if (sessionState.timerInterval) clearInterval(sessionState.timerInterval);
+            document.getElementById('sessionModal').style.display = 'none';
+            currentSession = null;
+        }
+
+        // ===== HISTORY & STATS =====
+        function updateHistory() {
+            if (workoutHistory.length === 0) {
+                document.getElementById('historyList').innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📊</div>
+                        <div class="empty-title">No History Yet</div>
+                        <div class="empty-text">Complete your first workout to track progress</div>
+                    </div>
+                `;
+                return;
+            }
+
+            // Stats
+            const totalWorkouts = workoutHistory.length;
+            const totalTime = workoutHistory.reduce((sum, h) => sum + h.duration, 0);
+            const thisWeek = workoutHistory.filter(h => {
+                const date = new Date(h.date);
+                const week = new Date();
+                week.setDate(week.getDate() - 7);
+                return date > week;
+            }).length;
+
+            document.getElementById('totalWorkouts').textContent = totalWorkouts;
+            document.getElementById('totalTime').textContent = totalTime;
+            document.getElementById('thisWeek').textContent = thisWeek;
+
+            // History list
+            const container = document.getElementById('historyList');
+            container.innerHTML = workoutHistory.slice().reverse().map(h => {
+                const date = new Date(h.date).toLocaleDateString();
+                const supersetCount = h.supersets.length;
+                return `
+                    <div class="history-card">
+                        <div class="history-date">${date}</div>
+                        <div class="history-name">${h.workoutName}</div>
+                        <div class="history-stats">
+                            <div class="history-stat">
+                                <div class="history-stat-value">${supersetCount}</div>
+                                <div style="font-size: 10px;">Supersets</div>
+                            </div>
+                            <div class="history-stat">
+                                <div class="history-stat-value">${h.duration}</div>
+                                <div style="font-size: 10px;">Minutes</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function loadRandomWorkout() {
+            if (savedWorkouts.length === 0) {
+                alert('Create a workout first');
+                return;
+            }
+            const random = savedWorkouts[Math.floor(Math.random() * savedWorkouts.length)];
+            loadWorkout(random.id);
+        }
+
+        // ===== INIT =====
+        loadFromStorage();
+        renderWorkoutsList();
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('./sw.js')
+      .then(function() {
+        console.log('Service Worker Registered');
+      });
+  });
+}
+    </script>
+</body>
+</html>
